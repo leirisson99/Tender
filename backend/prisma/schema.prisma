@@ -6,3 +6,23 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model Empresa {
+  id             String          @id @default(uuid())
+  cnpj           String          @unique
+  razaoSocial    String
+  monitoramentos Monitoramento[]
+}
+
+model Monitoramento {
+  id                String  @id @default(uuid())
+  empresaId         String
+  empresa           Empresa @relation(fields: [empresaId], references: [id])
+  segmentoCodigo    String
+  segmentoDescricao String
+  uf                String
+  municipio         String?
+  ativo             Boolean @default(true)
+
+  @@unique([empresaId, segmentoCodigo, uf, municipio])
+}
