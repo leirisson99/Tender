@@ -30,7 +30,7 @@ Passos:
 6. Cada cenário "Dado/Quando/Então" da SPEC original deve mapear para pelo
    menos uma tarefa com teste correspondente. Confira essa cobertura antes
    de finalizar.
-7. Salve como `specify/specs/SPEC-{numero}-{slug}/tasks.md`.
+7. Salve como `specify/specs/backend/SPEC-{numero}-{slug}/tasks.md`.
 
 Ao final, apresente a lista de tarefas numerada e pergunte ao usuário se
 quer começar o `/implement` pela primeira tarefa.

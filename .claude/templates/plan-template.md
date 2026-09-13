@@ -1,6 +1,6 @@
 # Plano Técnico — SPEC-{NUMERO}
 
-Baseado em: `specify/specs/SPEC-{NUMERO}-{slug}.md`
+Baseado em: `specify/specs/backend/SPEC-{NUMERO}-{slug}/spec.md`
 
 ## 1. Entidades e objetos de valor (camada `domain`)
 

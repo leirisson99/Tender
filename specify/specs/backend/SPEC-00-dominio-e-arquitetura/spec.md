@@ -54,6 +54,10 @@ alertando antes que o prazo vire problema.
 
 ## 4. Modelo de domínio (agregados)
 
+Visão geral abaixo. Atributos, tipos, objetos de valor e o diagrama de
+relacionamento completo estão em `specify/specs/modelo-de-dominio.md` — todo
+`/plan` de feature consulta aquele documento antes de definir entidade nova.
+
 ### Agregado `Empresa` (contexto Perfil da Empresa)
 - Raiz: `Empresa` (identificada por CNPJ)
 - Contém: lista de `Monitoramento` (segmento + região)

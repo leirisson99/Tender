@@ -9,12 +9,16 @@ Descrição da feature recebida do usuário: $ARGUMENTS
 
 Passos:
 
-1. Leia `specify/memory/constitution.md` e `specify/specs/SPEC-00-dominio-e-arquitetura.md`
+1. Leia `specify/memory/constitution.md`,
+   `specify/specs/backend/SPEC-00-dominio-e-arquitetura/spec.md` e
+   `specify/specs/backend/SPEC-dominio/spec-dominio.md`
    antes de escrever qualquer coisa — a SPEC nova tem que usar a mesma
-   linguagem ubíqua já definida, sem inventar termo equivalente com outro
-   nome (ex: nunca criar "Fornecedor" se o glossário já usa "Empresa").
-2. Liste os arquivos existentes em `specify/specs/` (Glob
-   `specify/specs/SPEC-*.md`) e determine o próximo número disponível.
+   linguagem ubíqua e os mesmos atributos/tipos já definidos, sem inventar
+   termo ou entidade equivalente com outro nome (ex: nunca criar
+   "Fornecedor" se o glossário já usa "Empresa").
+2. Liste os arquivos existentes em `specify/specs/backend/` (Glob
+   `specify/specs/backend/SPEC-*/spec.md`) e determine o próximo número
+   disponível.
    Confirme também se a feature descrita já não corresponde a uma SPEC do
    backlog listado na seção 7 da SPEC-00 — se corresponder, use o mesmo
    número e nome já reservados lá, não invente um novo.
@@ -31,7 +35,8 @@ Passos:
    parece exigir que o domínio dependa de algo externo, isso é um sinal de
    que a modelagem de domínio precisa mudar — aponte isso no plano, não
    ignore.
-7. Salve o arquivo em `specify/specs/SPEC-{numero com dois dígitos}-{slug-em-portugues}.md`.
+7. Salve o arquivo em
+   `specify/specs/backend/SPEC-{numero com dois dígitos}-{slug-em-portugues}/spec.md`.
 
 Ao final, aponte explicitamente qualquer "Dúvida em aberto" que ficou
 registrada — essas precisam de resposta do usuário antes do `/plan`.

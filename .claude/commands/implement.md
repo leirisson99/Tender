@@ -12,7 +12,7 @@ $ARGUMENTS
 
 Passos, na ordem, sem pular nenhum:
 
-1. Localize a tarefa em `specify/specs/SPEC-{numero}-{slug}/tasks.md`. Se
+1. Localize a tarefa em `specify/specs/backend/SPEC-{numero}-{slug}/tasks.md`. Se
    `$ARGUMENTS` vier vazio, pegue a primeira tarefa ainda não marcada como
    concluída.
 2. **Red:** escreva o teste descrito na tarefa, no caminho exato indicado.

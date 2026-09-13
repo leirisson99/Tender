@@ -7,7 +7,8 @@ com Spec-Driven Development.
 
 Leia sempre, nesta ordem, antes de tocar em qualquer código:
 1. `specify/memory/constitution.md` — princípios inegociáveis
-2. `specify/specs/SPEC-00-dominio-e-arquitetura.md` — glossário, contextos delimitados, arquitetura
+2. `specify/specs/backend/SPEC-00-dominio-e-arquitetura/spec.md` — glossário, contextos delimitados, arquitetura
+3. `specify/specs/backend/SPEC-dominio/spec-dominio.md` — atributos, tipos e invariantes de cada entidade; todo `/plan` reaproveita o que está aqui em vez de redefinir
 
 ## Regras inegociáveis (resumo — a fonte de verdade é a constituição)
 
@@ -51,7 +52,7 @@ src/
   interfaces/http/     rotas Fastify, schemas Zod, tradução de erro → HTTP
 specify/
   memory/constitution.md
-  specs/SPEC-XX-nome/  (spec.md, plan.md, tasks.md por feature)
+  specs/backend/SPEC-XX-nome/  (spec.md, plan.md, tasks.md por feature)
 .claude/
   commands/            constitution.md, specify.md, plan.md, tasks.md, implement.md
   templates/           spec-template.md, plan-template.md, task-template.md
