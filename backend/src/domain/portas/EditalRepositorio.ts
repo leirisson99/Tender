@@ -5,4 +5,5 @@ export interface EditalRepositorio {
   salvar(edital: Edital): Promise<void>;
   listarPendentesDeCompatibilidade(): Promise<Edital[]>;
   atualizarClassificacao(edital: Edital): Promise<void>;
+  listarCompativeis(): Promise<Edital[]>;
 }

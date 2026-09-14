@@ -13,6 +13,7 @@ model Empresa {
   razaoSocial         String
   monitoramentos      Monitoramento[]
   dossieDeHabilitacao DossieDeHabilitacao?
+  alertas             Alerta[]
 }
 
 model Monitoramento {
@@ -66,4 +67,18 @@ model Certidao {
   arquivoCaminho        String
   arquivoNomeOriginal   String
   arquivoEnviadoEm      DateTime
+}
+
+model Alerta {
+  id             String    @id @default(uuid())
+  empresaId      String
+  empresa        Empresa   @relation(fields: [empresaId], references: [id])
+  tipo           String
+  origemTipo     String
+  origemId       String
+  canal          String
+  status         String
+  momentoDeEnvio DateTime?
+
+  @@index([empresaId, tipo, origemTipo, origemId])
 }

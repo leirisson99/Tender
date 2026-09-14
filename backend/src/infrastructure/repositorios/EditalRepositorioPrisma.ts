@@ -84,6 +84,24 @@ export class EditalRepositorioPrisma implements EditalRepositorio {
       .map(reidratarEdital);
   }
 
+  async listarCompativeis(): Promise<Edital[]> {
+    const registros = await this.prisma.edital.findMany({
+      orderBy: [{ editalId: "asc" }, { versao: "desc" }],
+    });
+
+    const ultimaVersaoPorEditalId = new Map<string, EditalPrisma>();
+
+    for (const registro of registros) {
+      if (!ultimaVersaoPorEditalId.has(registro.editalId)) {
+        ultimaVersaoPorEditalId.set(registro.editalId, registro);
+      }
+    }
+
+    return [...ultimaVersaoPorEditalId.values()]
+      .filter((registro) => registro.segmentoInferidoCodigo !== null)
+      .map(reidratarEdital);
+  }
+
   async atualizarClassificacao(edital: Edital): Promise<void> {
     await this.prisma.edital.update({
       where: { editalId_versao: { editalId: edital.id, versao: edital.versao } },

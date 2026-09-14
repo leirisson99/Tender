@@ -158,4 +158,48 @@ describe("EditalRepositorioPrisma", () => {
     const totalDeLinhas = await prisma.edital.count({ where: { editalId: edital.id } });
     expect(totalDeLinhas).toBe(1);
   });
+
+  it("listarCompativeis retorna só a última versão de cada Edital com segmentoInferido preenchido", async () => {
+    const repositorio = new EditalRepositorioPrisma(prisma);
+
+    const editalNaoCompativel = Edital.criar({
+      numeroDeProcesso: "PE-0006/2026",
+      orgao: { nome: "Autarquia Fictícia de Trânsito", esfera: "Municipal" },
+      regiao: Regiao.criar("SC"),
+      objeto: "Aquisição de material fictício de sinalização",
+      valorEstimado: Dinheiro.criar(400000),
+      dataDePublicacao: new Date("2026-01-07T00:00:00.000Z"),
+      dataDeEntregaDaProposta: new Date("2026-02-07T00:00:00.000Z"),
+    });
+    await repositorio.salvar(editalNaoCompativel);
+
+    const editalCompativelVersao1 = Edital.criar({
+      numeroDeProcesso: "PE-0007/2026",
+      orgao: { nome: "Departamento Fictício de Águas", esfera: "Estadual" },
+      regiao: Regiao.criar("SC"),
+      objeto: "Contratação de serviço fictício de saneamento",
+      valorEstimado: Dinheiro.criar(600000),
+      dataDePublicacao: new Date("2026-01-09T00:00:00.000Z"),
+      dataDeEntregaDaProposta: new Date("2026-02-09T00:00:00.000Z"),
+    }).marcarComoCompativel(Cnae.criar("3600-6/01", "Captação, tratamento e distribuição de água"));
+    await repositorio.salvar(editalCompativelVersao1);
+    const editalCompativelVersao2SemClassificacao = editalCompativelVersao1.criarNovaVersao({
+      regiao: editalCompativelVersao1.regiao,
+      objeto: editalCompativelVersao1.objeto,
+      valorEstimado: editalCompativelVersao1.valorEstimado,
+      dataDePublicacao: editalCompativelVersao1.dataDePublicacao,
+      dataDeEntregaDaProposta: editalCompativelVersao1.dataDeEntregaDaProposta,
+    });
+    await repositorio.salvar(editalCompativelVersao2SemClassificacao);
+    await repositorio.atualizarClassificacao(
+      editalCompativelVersao2SemClassificacao.marcarComoCompativel(
+        Cnae.criar("3600-6/01", "Captação, tratamento e distribuição de água"),
+      ),
+    );
+
+    const compativeis = await repositorio.listarCompativeis();
+
+    expect(compativeis.map((edital) => edital.numeroDeProcesso)).toEqual(["PE-0007/2026"]);
+    expect(compativeis[0]?.versao).toBe(2);
+  });
 });

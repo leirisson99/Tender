@@ -49,4 +49,18 @@ export class EditalRepositorioFalso implements EditalRepositorio {
       this.editais[indice] = edital;
     }
   }
+
+  async listarCompativeis(): Promise<Edital[]> {
+    const ultimaVersaoPorEditalId = new Map<string, Edital>();
+
+    for (const edital of this.editais) {
+      const atual = ultimaVersaoPorEditalId.get(edital.id);
+
+      if (atual === undefined || edital.versao > atual.versao) {
+        ultimaVersaoPorEditalId.set(edital.id, edital);
+      }
+    }
+
+    return [...ultimaVersaoPorEditalId.values()].filter((edital) => edital.segmentoInferido !== null);
+  }
 }
