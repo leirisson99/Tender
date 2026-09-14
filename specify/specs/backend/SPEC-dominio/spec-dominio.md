@@ -100,12 +100,14 @@ Identidade: `EditalId`, derivada de `numeroDeProcesso + orgao`.
 |---|---|---|
 | `id` | `EditalId` | |
 | `numeroDeProcesso` | `string` | identificador do órgão emissor |
-| `orgao` | `{ nome: string, esfera: "Federal" \| "Estadual" \| "Municipal" }` | |
+| `orgao` | `{ nome: string, esfera: "Federal" \| "Estadual" \| "Municipal" \| "Distrital" }` | `Distrital` cobre órgão do Distrito Federal (esferaId "D" na API do PNCP) — não confundir com "Estadual" |
+| `regiao` | `Regiao` | UF (e, se disponível, município) do órgão emissor — usado para filtrar edital relevante (SPEC-03), da mesma forma que `Monitoramento.regiao` |
 | `objeto` | `string` | descrição textual do que está sendo contratado |
 | `valorEstimado` | `Dinheiro` | |
 | `dataDePublicacao` | `Date` | |
 | `dataDeEntregaDaProposta` | `Date` | prazo — usado para calcular urgência |
-| `segmentoInferido` | `Cnae` | resultado do processo de compatibilidade (SPEC-03), não o CNAE literal do órgão |
+| `segmentoInferido` | `Cnae \| null` | resultado do processo de compatibilidade (SPEC-03), não o CNAE literal do órgão; `null` desde a ingestão (SPEC-02) até a SPEC-03 processar o Edital |
+| `classificacaoDoItem` | `{ codigo: string, descricao: string } \| null` | código de classificação bruto do item da compra, capturado na ingestão (SPEC-02/SPEC-03); sem validação de formato de CNAE — a fonte (PNCP) não garante esse formato. É o dado de entrada comparado contra `Monitoramento.segmento` para decidir `segmentoInferido`; `null` até a ingestão conseguir popular esse campo |
 | `versao` | `number` | incrementada a cada republicação; nunca sobrescreve histórico (SPEC-00, seção 4) |
 
 **Invariante:** um `Edital` já publicado é imutável — qualquer atualização
@@ -150,7 +152,7 @@ erDiagram
 |---|---|
 | `Empresa`, `Monitoramento`, `Cnpj`, `Cnae`, `Regiao` | SPEC-01 |
 | `Edital`, `Dinheiro` | SPEC-02 |
-| `segmentoInferido` (regra de compatibilidade) | SPEC-03 |
+| `segmentoInferido` (regra de compatibilidade), `classificacaoDoItem` | SPEC-03 |
 | `DossiêDeHabilitação`, `Certidão`, `PeriodoDeValidade`, `ReferenciaDeArquivo`, `SituacaoDaCertidao` | SPEC-04 |
 | `calcularProntidaoParaEdital`, `Prontidao` | SPEC-05 |
 | `Alerta`, `TipoDeAlerta`, `StatusDoEnvio` | SPEC-06 |

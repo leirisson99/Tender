@@ -26,3 +26,22 @@ model Monitoramento {
 
   @@unique([empresaId, segmentoCodigo, uf, municipio])
 }
+
+model Edital {
+  id                        String   @id @default(uuid())
+  editalId                  String
+  versao                    Int
+  numeroDeProcesso          String
+  nomeDoOrgao               String
+  esfera                    String
+  uf                        String
+  municipio                 String?
+  objeto                    String
+  valorEstimadoEmCentavos   Int
+  dataDePublicacao          DateTime
+  dataDeEntregaDaProposta   DateTime
+  segmentoInferidoCodigo    String?
+  segmentoInferidoDescricao String?
+
+  @@unique([editalId, versao])
+}

@@ -1,0 +1,21 @@
+{
+  "data": [
+    {
+      "processo": "PE-0001/2026",
+      "orgaoEntidade": {
+        "razaoSocial": "Prefeitura Fictícia de Exemplópolis",
+        "esferaId": "D"
+      },
+      "unidadeOrgao": {
+        "ufSigla": "SC",
+        "municipioNome": "Florianópolis"
+      },
+      "objetoCompra": "Aquisição de material de escritório fictício",
+      "valorTotalEstimado": 15000.00,
+      "dataPublicacaoPncp": "2026-01-10",
+      "dataEncerramentoProposta": "2026-02-10"
+    }
+  ],
+  "totalPaginas": 1,
+  "numeroPagina": 1
+}
