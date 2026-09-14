@@ -28,6 +28,8 @@ seus atributos, e são imutáveis.
 | `CategoriaDeHabilitacao` | `Juridica`, `FiscalETrabalhista`, `EconomicoFinanceira`, `Tecnica` |
 | `TipoDeDocumentoDeHabilitacao` | `CndFederal`, `CrfFgts`, `Cndt`, `CertidaoEstadual`, `CertidaoMunicipal`, `CertidaoNegativaDeFalencia`, `AtestadoDeCapacidadeTecnica`, `ContratoSocial` — cada valor associado a exatamente uma `CategoriaDeHabilitacao`, conforme a Lei 14.133/2021: `ContratoSocial` → `Juridica`; `CndFederal`, `CrfFgts`, `Cndt`, `CertidaoEstadual`, `CertidaoMunicipal` → `FiscalETrabalhista`; `CertidaoNegativaDeFalencia` → `EconomicoFinanceira`; `AtestadoDeCapacidadeTecnica` → `Tecnica` (SPEC-04) |
 | `SituacaoDaCertidao` | `Valida`, `AVencer`, `Vencida` — **calculada**, nunca persistida diretamente (ver seção 4); janela de alerta fixa de 30 dias corridos antes de `dataDeValidade` para `AVencer` (SPEC-04) |
+| `PlacarDeProntidao` | `Apta`, `Pendente`, `Inapta` — resultado de `calcularProntidaoParaEdital`; `Inapta` domina sobre `Pendente`, que domina sobre `Apta`, quando categorias diferentes têm situações diferentes (SPEC-05) |
+| `MotivoDaPendencia` | `SemCertidaoCadastrada`, `CertidaoAVencer`, `CertidaoVencida` — motivo de uma `Pendencia` não estar satisfeita (SPEC-05) |
 | `TipoDeAlerta` | `EditalCompativel`, `CertidaoAVencer`, `CertidaoVencida` |
 | `CanalDeNotificacao` | `WhatsApp` (único no MVP — ver SPEC-00 seção 9.1 para canais futuros) |
 | `StatusDoEnvio` | `Pendente`, `Enviado`, `FalhouNoEnvio` |
@@ -88,6 +90,15 @@ exigidas pelo edital com a situação atual de cada `Certidão` e devolve um
 placar (`Apta`, `Pendente`, `Inapta`) mais a lista de pendências
 específicas. Esta é a regra citada na SPEC-00 como
 `calcularProntidãoParaEdital` (SPEC-05).
+
+`Prontidao` (objeto de valor, SPEC-05): `{ placar: PlacarDeProntidao,
+pendencias: Pendencia[] }`. `pendencias` é vazio se e somente se
+`placar === "Apta"`.
+
+`Pendencia` (objeto de valor, SPEC-05): `{ categoria:
+CategoriaDeHabilitacao, motivo: MotivoDaPendencia }` — uma entrada por
+categoria exigida que não está plenamente satisfeita (ver seção 2 para os
+valores de `MotivoDaPendencia`).
 
 **Invariante:** uma `Certidão` com `situacaoEm(hoje) == Vencida` nunca
 conta como cumprindo sua categoria, independente de qualquer outro campo.
@@ -154,7 +165,7 @@ erDiagram
 | `Edital`, `Dinheiro` | SPEC-02 |
 | `segmentoInferido` (regra de compatibilidade), `classificacaoDoItem` | SPEC-03 |
 | `DossiêDeHabilitação`, `Certidão`, `PeriodoDeValidade`, `ReferenciaDeArquivo`, `SituacaoDaCertidao` | SPEC-04 |
-| `calcularProntidaoParaEdital`, `Prontidao` | SPEC-05 |
+| `calcularProntidaoParaEdital`, `Prontidao`, `Pendencia`, `PlacarDeProntidao`, `MotivoDaPendencia` | SPEC-05 |
 | `Alerta`, `TipoDeAlerta`, `StatusDoEnvio` | SPEC-06 |
 | `CanalDeNotificacao` (envio de fato) | SPEC-07 |
 

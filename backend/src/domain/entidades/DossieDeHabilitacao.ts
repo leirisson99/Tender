@@ -3,7 +3,12 @@ import type { ReferenciaDeArquivo } from "../objetosDeValor/ReferenciaDeArquivo.
 import type { TipoDeDocumentoDeHabilitacao } from "../objetosDeValor/TipoDeDocumentoDeHabilitacao.js";
 import type { CategoriaDeHabilitacao } from "../objetosDeValor/CategoriaDeHabilitacao.js";
 import type { SituacaoDaCertidao } from "../objetosDeValor/SituacaoDaCertidao.js";
+import type { Prontidao } from "../objetosDeValor/Prontidao.js";
+import type { Pendencia } from "../objetosDeValor/Pendencia.js";
+import type { MotivoDaPendencia } from "../objetosDeValor/MotivoDaPendencia.js";
+import type { PlacarDeProntidao } from "../objetosDeValor/PlacarDeProntidao.js";
 import type { EmpresaId } from "./Empresa.js";
+import type { Edital } from "./Edital.js";
 
 export type CertidaoId = string;
 export type DossieId = string;
@@ -21,6 +26,30 @@ const CATEGORIA_POR_TIPO: Record<TipoDeDocumentoDeHabilitacao, CategoriaDeHabili
   CertidaoNegativaDeFalencia: "EconomicoFinanceira",
   AtestadoDeCapacidadeTecnica: "Tecnica",
 };
+
+const TIPOS_POR_CATEGORIA: Record<CategoriaDeHabilitacao, TipoDeDocumentoDeHabilitacao[]> = {
+  Juridica: ["ContratoSocial"],
+  FiscalETrabalhista: ["CndFederal", "CrfFgts", "Cndt", "CertidaoEstadual", "CertidaoMunicipal"],
+  EconomicoFinanceira: ["CertidaoNegativaDeFalencia"],
+  Tecnica: ["AtestadoDeCapacidadeTecnica"],
+};
+
+const CATEGORIAS_EXIGIDAS_PADRAO: CategoriaDeHabilitacao[] = [
+  "Juridica",
+  "FiscalETrabalhista",
+  "EconomicoFinanceira",
+  "Tecnica",
+];
+
+const ORDEM_DE_GRAVIDADE_DO_MOTIVO: MotivoDaPendencia[] = [
+  "SemCertidaoCadastrada",
+  "CertidaoVencida",
+  "CertidaoAVencer",
+];
+
+function categoriasExigidasPeloEdital(_edital: Edital): CategoriaDeHabilitacao[] {
+  return CATEGORIAS_EXIGIDAS_PADRAO;
+}
 
 export class Certidao {
   private constructor(
@@ -100,5 +129,52 @@ export class DossieDeHabilitacao {
     this.listaDeCertidoes.push(certidao);
 
     return certidao;
+  }
+
+  calcularProntidaoParaEdital(edital: Edital, hoje: Date): Prontidao {
+    const pendencias: Pendencia[] = [];
+
+    for (const categoria of categoriasExigidasPeloEdital(edital)) {
+      const motivosDosTipos: MotivoDaPendencia[] = [];
+
+      for (const tipo of TIPOS_POR_CATEGORIA[categoria]) {
+        const certidoesDoTipo = this.listaDeCertidoes.filter((certidao) => certidao.tipo === tipo);
+        const certidaoConsiderada = certidoesDoTipo.reduce<Certidao | undefined>(
+          (maisRecente, atual) =>
+            maisRecente === undefined ||
+            atual.periodoDeValidade.dataDeValidade.getTime() > maisRecente.periodoDeValidade.dataDeValidade.getTime()
+              ? atual
+              : maisRecente,
+          undefined,
+        );
+
+        if (certidaoConsiderada === undefined) {
+          motivosDosTipos.push("SemCertidaoCadastrada");
+          continue;
+        }
+
+        const situacao = certidaoConsiderada.situacaoEm(hoje);
+
+        if (situacao === "Vencida") {
+          motivosDosTipos.push("CertidaoVencida");
+        } else if (situacao === "AVencer") {
+          motivosDosTipos.push("CertidaoAVencer");
+        }
+      }
+
+      const motivo = ORDEM_DE_GRAVIDADE_DO_MOTIVO.find((candidato) => motivosDosTipos.includes(candidato));
+
+      if (motivo !== undefined) {
+        pendencias.push({ categoria, motivo });
+      }
+    }
+
+    const placar: PlacarDeProntidao = pendencias.some((pendencia) => pendencia.motivo !== "CertidaoAVencer")
+      ? "Inapta"
+      : pendencias.length > 0
+        ? "Pendente"
+        : "Apta";
+
+    return { placar, pendencias };
   }
 }
