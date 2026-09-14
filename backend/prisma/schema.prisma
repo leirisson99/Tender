@@ -8,10 +8,11 @@ datasource db {
 }
 
 model Empresa {
-  id             String          @id @default(uuid())
-  cnpj           String          @unique
-  razaoSocial    String
-  monitoramentos Monitoramento[]
+  id                  String               @id @default(uuid())
+  cnpj                String               @unique
+  razaoSocial         String
+  monitoramentos      Monitoramento[]
+  dossieDeHabilitacao DossieDeHabilitacao?
 }
 
 model Monitoramento {
@@ -46,4 +47,23 @@ model Edital {
   classificacaoDoItemDescricao String?
 
   @@unique([editalId, versao])
+}
+
+model DossieDeHabilitacao {
+  id        String     @id @default(uuid())
+  empresaId String     @unique
+  empresa   Empresa    @relation(fields: [empresaId], references: [id])
+  certidoes Certidao[]
+}
+
+model Certidao {
+  id                    String              @id @default(uuid())
+  dossieDeHabilitacaoId String
+  dossieDeHabilitacao   DossieDeHabilitacao @relation(fields: [dossieDeHabilitacaoId], references: [id])
+  tipo                  String
+  dataDeEmissao         DateTime
+  dataDeValidade        DateTime
+  arquivoCaminho        String
+  arquivoNomeOriginal   String
+  arquivoEnviadoEm      DateTime
 }

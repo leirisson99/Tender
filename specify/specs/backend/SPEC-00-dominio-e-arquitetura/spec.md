@@ -162,6 +162,14 @@ cumpridos — nunca em paralelo, nunca antes.
   padronizado (não é dado como certo que precise de LangGraph — se um
   simples embedding resolver, não se introduz agente só por preferência
   tecnológica)
+- **Extração automática de dados da Certidão via IA** — hoje (SPEC-04) o
+  usuário digita `tipo`, `dataDeEmissao` e `dataDeValidade` manualmente ao
+  fazer upload do arquivo; evolução candidata a usar OCR/extração de
+  documento (ou o agente de IA acima) para preencher esses campos a partir
+  do próprio arquivo enviado, reduzindo digitação — sem alterar o
+  princípio de que o arquivo em si é sempre upload manual do usuário
+  (constituição, princípio 7); o que muda é só quem preenche os campos
+  estruturados a partir dele, nunca a coleta do documento-fonte
 - **Canais de notificação adicionais** — e-mail e Telegram, além do
   WhatsApp da SPEC-07, reduzindo dependência de um único canal
 - **Multiempresa real (multi-tenant)** — hoje a fundação assume uma

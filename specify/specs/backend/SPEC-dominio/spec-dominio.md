@@ -26,8 +26,8 @@ seus atributos, e são imutáveis.
 | Enumeração | Valores |
 |---|---|
 | `CategoriaDeHabilitacao` | `Juridica`, `FiscalETrabalhista`, `EconomicoFinanceira`, `Tecnica` |
-| `TipoDeDocumentoDeHabilitacao` | `CndFederal`, `CrfFgts`, `Cndt`, `CertidaoEstadual`, `CertidaoMunicipal`, `CertidaoNegativaDeFalencia`, `AtestadoDeCapacidadeTecnica`, `ContratoSocial` — cada valor associado a exatamente uma `CategoriaDeHabilitacao` |
-| `SituacaoDaCertidao` | `Valida`, `AVencer`, `Vencida` — **calculada**, nunca persistida diretamente (ver seção 4) |
+| `TipoDeDocumentoDeHabilitacao` | `CndFederal`, `CrfFgts`, `Cndt`, `CertidaoEstadual`, `CertidaoMunicipal`, `CertidaoNegativaDeFalencia`, `AtestadoDeCapacidadeTecnica`, `ContratoSocial` — cada valor associado a exatamente uma `CategoriaDeHabilitacao`, conforme a Lei 14.133/2021: `ContratoSocial` → `Juridica`; `CndFederal`, `CrfFgts`, `Cndt`, `CertidaoEstadual`, `CertidaoMunicipal` → `FiscalETrabalhista`; `CertidaoNegativaDeFalencia` → `EconomicoFinanceira`; `AtestadoDeCapacidadeTecnica` → `Tecnica` (SPEC-04) |
+| `SituacaoDaCertidao` | `Valida`, `AVencer`, `Vencida` — **calculada**, nunca persistida diretamente (ver seção 4); janela de alerta fixa de 30 dias corridos antes de `dataDeValidade` para `AVencer` (SPEC-04) |
 | `TipoDeAlerta` | `EditalCompativel`, `CertidaoAVencer`, `CertidaoVencida` |
 | `CanalDeNotificacao` | `WhatsApp` (único no MVP — ver SPEC-00 seção 9.1 para canais futuros) |
 | `StatusDoEnvio` | `Pendente`, `Enviado`, `FalhouNoEnvio` |
