@@ -6,6 +6,7 @@ import { EditalRepositorioPrisma } from "./EditalRepositorioPrisma.js";
 import { Edital } from "../../domain/entidades/Edital.js";
 import { Dinheiro } from "../../domain/objetosDeValor/Dinheiro.js";
 import { Regiao } from "../../domain/objetosDeValor/Regiao.js";
+import { Cnae } from "../../domain/objetosDeValor/Cnae.js";
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
@@ -34,6 +35,7 @@ describe("EditalRepositorioPrisma", () => {
       valorEstimado: Dinheiro.criar(1500000),
       dataDePublicacao: new Date("2026-01-10T00:00:00.000Z"),
       dataDeEntregaDaProposta: new Date("2026-02-10T00:00:00.000Z"),
+      classificacaoDoItem: { codigo: "7890", descricao: "Material fictício" },
     });
 
     await repositorio.salvar(edital);
@@ -53,6 +55,7 @@ describe("EditalRepositorioPrisma", () => {
     expect(recuperado?.dataDePublicacao.toISOString()).toBe("2026-01-10T00:00:00.000Z");
     expect(recuperado?.dataDeEntregaDaProposta.toISOString()).toBe("2026-02-10T00:00:00.000Z");
     expect(recuperado?.segmentoInferido).toBeNull();
+    expect(recuperado?.classificacaoDoItem).toEqual({ codigo: "7890", descricao: "Material fictício" });
     expect(recuperado?.versao).toBe(1);
   });
 
@@ -86,5 +89,73 @@ describe("EditalRepositorioPrisma", () => {
     expect(recuperado?.valorEstimado.valorEmCentavos).toBe(900000);
     const totalDeLinhas = await prisma.edital.count({ where: { editalId: editalVersao1.id } });
     expect(totalDeLinhas).toBe(2);
+  });
+
+  it("listarPendentesDeCompatibilidade retorna só a versão mais recente de cada Edital com classificação nula", async () => {
+    const repositorio = new EditalRepositorioPrisma(prisma);
+
+    const editalPendente = Edital.criar({
+      numeroDeProcesso: "PE-0003/2026",
+      orgao: { nome: "Câmara Fictícia de Vereadores", esfera: "Municipal" },
+      regiao: Regiao.criar("SC"),
+      objeto: "Aquisição de material fictício",
+      valorEstimado: Dinheiro.criar(500000),
+      dataDePublicacao: new Date("2026-01-05T00:00:00.000Z"),
+      dataDeEntregaDaProposta: new Date("2026-02-05T00:00:00.000Z"),
+    });
+    await repositorio.salvar(editalPendente);
+
+    const editalJaCompativelVersao1 = Edital.criar({
+      numeroDeProcesso: "PE-0004/2026",
+      orgao: { nome: "Fundação Fictícia de Cultura", esfera: "Municipal" },
+      regiao: Regiao.criar("SC"),
+      objeto: "Contratação de serviço fictício de eventos",
+      valorEstimado: Dinheiro.criar(700000),
+      dataDePublicacao: new Date("2026-01-06T00:00:00.000Z"),
+      dataDeEntregaDaProposta: new Date("2026-02-06T00:00:00.000Z"),
+    });
+    await repositorio.salvar(editalJaCompativelVersao1);
+    const editalComVersaoAntigaPendente = editalJaCompativelVersao1.criarNovaVersao({
+      regiao: editalJaCompativelVersao1.regiao,
+      objeto: editalJaCompativelVersao1.objeto,
+      valorEstimado: editalJaCompativelVersao1.valorEstimado,
+      dataDePublicacao: editalJaCompativelVersao1.dataDePublicacao,
+      dataDeEntregaDaProposta: editalJaCompativelVersao1.dataDeEntregaDaProposta,
+    });
+    const editalJaCompativelVersao2 = editalComVersaoAntigaPendente.marcarComoCompativel(
+      Cnae.criar("9001-9/01", "Artes cênicas"),
+    );
+    await repositorio.salvar(editalJaCompativelVersao2);
+
+    const pendentes = await repositorio.listarPendentesDeCompatibilidade();
+
+    expect(pendentes.map((edital) => edital.numeroDeProcesso)).toEqual(["PE-0003/2026"]);
+  });
+
+  it("atualizarClassificacao faz UPDATE na mesma linha, sem inserir versão nova", async () => {
+    const repositorio = new EditalRepositorioPrisma(prisma);
+    const edital = Edital.criar({
+      numeroDeProcesso: "PE-0005/2026",
+      orgao: { nome: "Instituto Fictício de Pesquisa", esfera: "Federal" },
+      regiao: Regiao.criar("SC"),
+      objeto: "Aquisição de equipamento fictício de laboratório",
+      valorEstimado: Dinheiro.criar(300000),
+      dataDePublicacao: new Date("2026-01-08T00:00:00.000Z"),
+      dataDeEntregaDaProposta: new Date("2026-02-08T00:00:00.000Z"),
+    });
+    await repositorio.salvar(edital);
+
+    const cnae = Cnae.criar("7211-0/00", "Pesquisa e desenvolvimento experimental");
+    await repositorio.atualizarClassificacao(edital.marcarComoCompativel(cnae));
+
+    const atualizado = await repositorio.buscarUltimaVersao(
+      "PE-0005/2026",
+      "Instituto Fictício de Pesquisa",
+    );
+    expect(atualizado?.segmentoInferido?.codigo).toBe("7211-0/00");
+    expect(atualizado?.id).toBe(edital.id);
+    expect(atualizado?.versao).toBe(1);
+    const totalDeLinhas = await prisma.edital.count({ where: { editalId: edital.id } });
+    expect(totalDeLinhas).toBe(1);
   });
 });

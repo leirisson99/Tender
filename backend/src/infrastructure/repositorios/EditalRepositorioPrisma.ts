@@ -1,10 +1,32 @@
-import type { PrismaClient } from "../../generated/prisma/client.js";
+import type { PrismaClient, Edital as EditalPrisma } from "../../generated/prisma/client.js";
 import type { EditalRepositorio } from "../../domain/portas/EditalRepositorio.js";
 import { Edital } from "../../domain/entidades/Edital.js";
 import type { Esfera } from "../../domain/objetosDeValor/Esfera.js";
 import { Dinheiro } from "../../domain/objetosDeValor/Dinheiro.js";
 import { Regiao } from "../../domain/objetosDeValor/Regiao.js";
 import { Cnae } from "../../domain/objetosDeValor/Cnae.js";
+
+function reidratarEdital(registro: EditalPrisma): Edital {
+  return Edital.reconstituir({
+    id: registro.editalId,
+    numeroDeProcesso: registro.numeroDeProcesso,
+    orgao: { nome: registro.nomeDoOrgao, esfera: registro.esfera as Esfera },
+    regiao: Regiao.criar(registro.uf, registro.municipio ?? undefined),
+    objeto: registro.objeto,
+    valorEstimado: Dinheiro.criar(registro.valorEstimadoEmCentavos),
+    dataDePublicacao: registro.dataDePublicacao,
+    dataDeEntregaDaProposta: registro.dataDeEntregaDaProposta,
+    segmentoInferido:
+      registro.segmentoInferidoCodigo !== null && registro.segmentoInferidoDescricao !== null
+        ? Cnae.criar(registro.segmentoInferidoCodigo, registro.segmentoInferidoDescricao)
+        : null,
+    classificacaoDoItem:
+      registro.classificacaoDoItemCodigo !== null && registro.classificacaoDoItemDescricao !== null
+        ? { codigo: registro.classificacaoDoItemCodigo, descricao: registro.classificacaoDoItemDescricao }
+        : null,
+    versao: registro.versao,
+  });
+}
 
 export class EditalRepositorioPrisma implements EditalRepositorio {
   constructor(private readonly prisma: PrismaClient) {}
@@ -19,21 +41,7 @@ export class EditalRepositorioPrisma implements EditalRepositorio {
       return null;
     }
 
-    return Edital.reconstituir({
-      id: registro.editalId,
-      numeroDeProcesso: registro.numeroDeProcesso,
-      orgao: { nome: registro.nomeDoOrgao, esfera: registro.esfera as Esfera },
-      regiao: Regiao.criar(registro.uf, registro.municipio ?? undefined),
-      objeto: registro.objeto,
-      valorEstimado: Dinheiro.criar(registro.valorEstimadoEmCentavos),
-      dataDePublicacao: registro.dataDePublicacao,
-      dataDeEntregaDaProposta: registro.dataDeEntregaDaProposta,
-      segmentoInferido:
-        registro.segmentoInferidoCodigo !== null && registro.segmentoInferidoDescricao !== null
-          ? Cnae.criar(registro.segmentoInferidoCodigo, registro.segmentoInferidoDescricao)
-          : null,
-      versao: registro.versao,
-    });
+    return reidratarEdital(registro);
   }
 
   async salvar(edital: Edital): Promise<void> {
@@ -52,6 +60,38 @@ export class EditalRepositorioPrisma implements EditalRepositorio {
         dataDeEntregaDaProposta: edital.dataDeEntregaDaProposta,
         segmentoInferidoCodigo: edital.segmentoInferido?.codigo ?? null,
         segmentoInferidoDescricao: edital.segmentoInferido?.descricao ?? null,
+        classificacaoDoItemCodigo: edital.classificacaoDoItem?.codigo ?? null,
+        classificacaoDoItemDescricao: edital.classificacaoDoItem?.descricao ?? null,
+      },
+    });
+  }
+
+  async listarPendentesDeCompatibilidade(): Promise<Edital[]> {
+    const registros = await this.prisma.edital.findMany({
+      orderBy: [{ editalId: "asc" }, { versao: "desc" }],
+    });
+
+    const ultimaVersaoPorEditalId = new Map<string, EditalPrisma>();
+
+    for (const registro of registros) {
+      if (!ultimaVersaoPorEditalId.has(registro.editalId)) {
+        ultimaVersaoPorEditalId.set(registro.editalId, registro);
+      }
+    }
+
+    return [...ultimaVersaoPorEditalId.values()]
+      .filter((registro) => registro.segmentoInferidoCodigo === null)
+      .map(reidratarEdital);
+  }
+
+  async atualizarClassificacao(edital: Edital): Promise<void> {
+    await this.prisma.edital.update({
+      where: { editalId_versao: { editalId: edital.id, versao: edital.versao } },
+      data: {
+        segmentoInferidoCodigo: edital.segmentoInferido?.codigo ?? null,
+        segmentoInferidoDescricao: edital.segmentoInferido?.descricao ?? null,
+        classificacaoDoItemCodigo: edital.classificacaoDoItem?.codigo ?? null,
+        classificacaoDoItemDescricao: edital.classificacaoDoItem?.descricao ?? null,
       },
     });
   }

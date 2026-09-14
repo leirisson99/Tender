@@ -2,6 +2,7 @@ import type { Dinheiro } from "../objetosDeValor/Dinheiro.js";
 import type { Regiao } from "../objetosDeValor/Regiao.js";
 import type { Cnae } from "../objetosDeValor/Cnae.js";
 import type { Esfera } from "../objetosDeValor/Esfera.js";
+import type { ClassificacaoDoItem } from "../objetosDeValor/ClassificacaoDoItem.js";
 
 export type EditalId = string;
 
@@ -18,6 +19,7 @@ export interface DadosDoEdital {
   valorEstimado: Dinheiro;
   dataDePublicacao: Date;
   dataDeEntregaDaProposta: Date;
+  classificacaoDoItem?: ClassificacaoDoItem;
 }
 
 export interface ConteudoDoEdital {
@@ -26,6 +28,7 @@ export interface ConteudoDoEdital {
   valorEstimado: Dinheiro;
   dataDePublicacao: Date;
   dataDeEntregaDaProposta: Date;
+  classificacaoDoItem?: ClassificacaoDoItem;
 }
 
 export interface DadosDeReconstituicaoDoEdital {
@@ -38,6 +41,7 @@ export interface DadosDeReconstituicaoDoEdital {
   dataDePublicacao: Date;
   dataDeEntregaDaProposta: Date;
   segmentoInferido: Cnae | null;
+  classificacaoDoItem: ClassificacaoDoItem | null;
   versao: number;
 }
 
@@ -52,6 +56,7 @@ export class Edital {
     public readonly dataDePublicacao: Date,
     public readonly dataDeEntregaDaProposta: Date,
     public readonly segmentoInferido: Cnae | null,
+    public readonly classificacaoDoItem: ClassificacaoDoItem | null,
     public readonly versao: number,
   ) {}
 
@@ -68,6 +73,7 @@ export class Edital {
       dados.dataDePublicacao,
       dados.dataDeEntregaDaProposta,
       null,
+      dados.classificacaoDoItem ?? null,
       1,
     );
   }
@@ -83,6 +89,7 @@ export class Edital {
       dados.dataDePublicacao,
       dados.dataDeEntregaDaProposta,
       dados.segmentoInferido,
+      dados.classificacaoDoItem,
       dados.versao,
     );
   }
@@ -98,6 +105,22 @@ export class Edital {
     );
   }
 
+  marcarComoCompativel(segmento: Cnae): Edital {
+    return new Edital(
+      this.id,
+      this.numeroDeProcesso,
+      this.orgao,
+      this.regiao,
+      this.objeto,
+      this.valorEstimado,
+      this.dataDePublicacao,
+      this.dataDeEntregaDaProposta,
+      segmento,
+      this.classificacaoDoItem,
+      this.versao,
+    );
+  }
+
   criarNovaVersao(dados: ConteudoDoEdital): Edital {
     return new Edital(
       this.id,
@@ -109,6 +132,7 @@ export class Edital {
       dados.dataDePublicacao,
       dados.dataDeEntregaDaProposta,
       null,
+      dados.classificacaoDoItem ?? null,
       this.versao + 1,
     );
   }

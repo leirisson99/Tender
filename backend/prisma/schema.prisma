@@ -42,6 +42,8 @@ model Edital {
   dataDeEntregaDaProposta   DateTime
   segmentoInferidoCodigo    String?
   segmentoInferidoDescricao String?
+  classificacaoDoItemCodigo    String?
+  classificacaoDoItemDescricao String?
 
   @@unique([editalId, versao])
 }
